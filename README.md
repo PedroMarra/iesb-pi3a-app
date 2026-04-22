@@ -23,16 +23,16 @@ Nesta primeira entrega, o frontend contempla as seguintes estruturas visuais:
 Certifique-se de ter o Node.js instalado em sua máquina.
 
 1. Clone este repositório:
-`git clone https://github.com/PedroMarra/PI3A_IESB.git
+"git clone https://github.com/PedroMarra/PI3A_IESB.git"
 
 2. Acesse a pasta do projeto:
-`cd pi3a_iesb`
+"cd pi3a_iesb"
 
 3. Instale as dependências:
-`npm install`
+"npm install"
 
 4. Inicie o servidor do Expo:
-`npx expo start`
+"npx expo start"
 
 5. Escaneie o QR Code com o aplicativo Expo Go no seu celular para visualizar o app.
 

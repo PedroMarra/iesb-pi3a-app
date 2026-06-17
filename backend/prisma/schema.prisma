@@ -1,0 +1,100 @@
+// backend/prisma/schema.prisma
+// HelpIesb — Schema completo (Fórum existente + Gestor Académico novo)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENTIDADES JÁ EXISTENTES NO REPOSITÓRIO (Fórum)
+// ─────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  matricula String   @unique
+  curso     String?
+  avatar    String?
+  createdAt DateTime @default(now())
+
+  posts     Post[]
+  comments  Comment[]
+  schedules Schedule[]
+  grades    Grade[]
+
+  @@map("users")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  content   String   @db.Text
+  category  String   @default("Geral")
+  likes     Int      @default(0)
+  likedBy   String   @default("") @db.VarChar(2000) // CSV de userIds (mantém simplicidade do protótipo original)
+  createdAt DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+// ─────────────────────────────────────────────
+// NOVAS ENTIDADES — Gestor Académico (extensão)
+// ─────────────────────────────────────────────
+
+model Schedule {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  subject   String   // Nome da Disciplina
+  startTime String   // Horário de Início (ex: "08:00")
+  endTime   String   // Horário de Término (ex: "09:50")
+  room      String   // Sala
+  shift     Shift    // Turno
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("schedules")
+}
+
+model Grade {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  subject   String   // Nome da Disciplina
+  p1        Float?   // Nota P1 (peso 0.4) — null se ainda não lançada
+  p2        Float?   // Nota P2 (peso 0.6) — null se ainda não lançada
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("grades")
+}
+
+enum Shift {
+  MATUTINO
+  VESPERTINO
+  NOTURNO
+}

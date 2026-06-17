@@ -1,0 +1,466 @@
+{
+  "info": {
+    "_postman_id": "a9b8c7d6-helpiesb-collection-0001",
+    "name": "HelpIesb API",
+    "description": "Collection completa da API do HelpIesb — PI3A IESB.\n\nInclui:\n- Healthcheck\n- Usuários\n- Fórum (Posts + Comentários + Curtidas)\n- Horários (Gestor Académico)\n- Notas (Gestor Académico — com cálculo de média, menção e previsão de P2)\n\nImporte também o environment 'HelpIesb - Local' para usar as variáveis {{base_url}}, {{user_id}}, etc.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Verifica se a API está rodando e retorna contagem de registros no banco."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Usuários",
+      "item": [
+        {
+          "name": "GET Usuário por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            },
+            "description": "Retorna os dados de um usuário específico."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Posts de um Usuário",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/posts",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}", "posts"]
+            },
+            "description": "Lista todos os posts criados por um usuário (usado na tela de Perfil)."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Atualizar Perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pedro Braga\",\n  \"curso\": \"Engenharia de Software\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            },
+            "description": "Atualiza nome e/ou curso do usuário. O nome é obrigatório."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Fórum - Posts",
+      "item": [
+        {
+          "name": "GET Listar Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts",
+              "host": ["{{base_url}}"],
+              "path": ["posts"]
+            },
+            "description": "Lista todos os posts, ordenados do mais recente para o mais antigo."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Listar Posts (com busca e categoria)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts?search=calculadora&category=Ferramentas",
+              "host": ["{{base_url}}"],
+              "path": ["posts"],
+              "query": [
+                { "key": "search", "value": "calculadora" },
+                { "key": "category", "value": "Ferramentas" }
+              ]
+            },
+            "description": "Filtra posts por termo de busca (título/conteúdo/autor) e por categoria.\nCategorias válidas: Todos, Dúvidas, Suporte, Ferramentas, Geral."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Post por ID (com comentários)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/{{post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "{{post_id}}"]
+            },
+            "description": "Retorna um post específico junto com a lista de comentários."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Criar Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('created_post_id', json.id);",
+                  "    console.log('created_post_id salvo:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"title\": \"Dúvida sobre a entrega do PI3A\",\n  \"content\": \"Alguém sabe se a entrega final é até domingo ou segunda?\",\n  \"category\": \"Dúvidas\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts",
+              "host": ["{{base_url}}"],
+              "path": ["posts"]
+            },
+            "description": "Cria um novo post no fórum. Campos obrigatórios: userId, title, content.\nO ID criado é salvo automaticamente em {{created_post_id}}."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Curtir / Descurtir Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/{{post_id}}/like",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "{{post_id}}", "like"]
+            },
+            "description": "Alterna o estado de curtida (like/unlike) de um usuário em um post."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Excluir Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/{{created_post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "{{created_post_id}}"]
+            },
+            "description": "Remove um post. Só funciona se userId for o autor do post (senão retorna 403).\nUse {{created_post_id}} após rodar 'POST Criar Post', ou troque pelo ID desejado."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Fórum - Comentários",
+      "item": [
+        {
+          "name": "POST Adicionar Comentário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('created_comment_id', json.id);",
+                  "    console.log('created_comment_id salvo:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{other_user_id}}\",\n  \"text\": \"Boa pergunta, também quero saber!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/{{post_id}}/comments",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "{{post_id}}", "comments"]
+            },
+            "description": "Adiciona um comentário a um post existente. Campos obrigatórios: userId, text."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Horários",
+      "item": [
+        {
+          "name": "GET Listar Horários",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/schedules?userId={{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["schedules"],
+              "query": [
+                { "key": "userId", "value": "{{user_id}}" }
+              ]
+            },
+            "description": "Lista todos os horários cadastrados para o usuário. Remova o query param userId para listar de todos os usuários."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Horário por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/schedules/{{schedule_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["schedules", "{{schedule_id}}"]
+            },
+            "description": "Retorna o detalhe de um horário específico."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Criar Horário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('schedule_id', json.id);",
+                  "    console.log('schedule_id salvo:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"subject\": \"Cálculo 1\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"09:50\",\n  \"room\": \"Bloco J - JB1\",\n  \"shift\": \"MATUTINO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schedules",
+              "host": ["{{base_url}}"],
+              "path": ["schedules"]
+            },
+            "description": "Cria um novo horário de aula.\nCampos obrigatórios: userId, subject, startTime, endTime, room, shift.\nshift deve ser: MATUTINO, VESPERTINO ou NOTURNO.\nO ID criado é salvo automaticamente em {{schedule_id}}."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Atualizar Horário",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Cálculo 1\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"09:50\",\n  \"room\": \"Bloco J - JB1\",\n  \"shift\": \"MATUTINO\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schedules/{{schedule_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["schedules", "{{schedule_id}}"]
+            },
+            "description": "Atualiza um horário existente. Todos os campos são obrigatórios na atualização."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Excluir Horário",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/schedules/{{schedule_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["schedules", "{{schedule_id}}"]
+            },
+            "description": "Remove um horário pelo ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notas",
+      "item": [
+        {
+          "name": "GET Listar Notas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/grades?userId={{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grades"],
+              "query": [
+                { "key": "userId", "value": "{{user_id}}" }
+              ]
+            },
+            "description": "Lista todas as notas do usuário, já com média, menção, minP2 e aprovado calculados."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Nota por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/grades/{{grade_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grades", "{{grade_id}}"]
+            },
+            "description": "Retorna o detalhe de uma nota específica, com campos calculados."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Criar Nota (somente P1 - previsão de P2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('grade_id', json.id);",
+                  "    console.log('grade_id salvo:', json.id);",
+                  "    console.log('minP2 calculado:', json.minP2);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"subject\": \"Estruturas de Dados\",\n  \"p1\": 7.5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grades",
+              "host": ["{{base_url}}"],
+              "path": ["grades"]
+            },
+            "description": "Cria uma nota só com P1 lançada. A resposta traz 'minP2': a nota mínima necessária na P2 para atingir a média 5 (MM).\nFórmula: (5 - P1*0.4) / 0.6\nO ID criado é salvo automaticamente em {{grade_id}}."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Atualizar Nota (lançar P2 - resultado final)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Estruturas de Dados\",\n  \"p1\": 7.5,\n  \"p2\": 6.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grades/{{grade_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grades", "{{grade_id}}"]
+            },
+            "description": "Atualiza a nota lançando a P2. A resposta traz 'media', 'mencao' e 'aprovado' calculados.\nMédia = (P1*0.4) + (P2*0.6). Aprovado se média >= 5."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Excluir Nota",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/grades/{{grade_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grades", "{{grade_id}}"]
+            },
+            "description": "Remove uma nota pelo ID."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    }
+  ]
+}
